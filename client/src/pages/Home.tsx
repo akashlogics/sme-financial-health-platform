@@ -4,13 +4,21 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { getLoginUrl } from "@/const";
 import { TrendingUp, BarChart3, Shield, Zap, ArrowRight, CheckCircle } from "lucide-react";
 import { useLocation } from "wouter";
+import { useEffect } from "react";
 
 export default function Home() {
   const { isAuthenticated } = useAuth();
   const [, setLocation] = useLocation();
 
+  // Use effect to redirect authenticated users to dashboard
+  useEffect(() => {
+    if (isAuthenticated) {
+      setLocation("/dashboard");
+    }
+  }, [isAuthenticated, setLocation]);
+
+  // Show nothing while redirecting
   if (isAuthenticated) {
-    setLocation("/dashboard");
     return null;
   }
 
