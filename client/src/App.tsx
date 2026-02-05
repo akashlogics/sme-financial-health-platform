@@ -8,11 +8,28 @@ import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import { useAuth } from "./_core/hooks/useAuth";
 import { Loader2 } from "lucide-react";
+import { useEffect, useState } from "react";
 
 function Router() {
-  const { isAuthenticated, loading } = useAuth();
+  return (
+    <Switch>
+      <Route path="/" component={Home} />
+      <Route path="/dashboard" component={Dashboard} />
+      <Route path="/404" component={NotFound} />
+      <Route component={NotFound} />
+    </Switch>
+  );
+}
 
-  if (loading) {
+function AppContent() {
+  const { isAuthenticated, loading } = useAuth();
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    setShouldRender(true);
+  }, []);
+
+  if (loading || !shouldRender) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="animate-spin w-8 h-8" />
@@ -20,14 +37,7 @@ function Router() {
     );
   }
 
-  return (
-    <Switch>
-      <Route path="/" component={Home} />
-      {isAuthenticated && <Route path="/dashboard" component={Dashboard} />}
-      <Route path="/404" component={NotFound} />
-      <Route component={NotFound} />
-    </Switch>
-  );
+  return <Router />;
 }
 
 function App() {
@@ -36,7 +46,7 @@ function App() {
       <ThemeProvider defaultTheme="light">
         <TooltipProvider>
           <Toaster />
-          <Router />
+          <AppContent />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>
