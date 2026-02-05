@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Loader2 } from "lucide-react";
+import { ArrowLeft, Loader2, AlertCircle } from "lucide-react";
 import { trpc } from "@/lib/trpc";
 import { toast } from "sonner";
 
@@ -42,6 +42,7 @@ export default function CreateBusiness() {
     financialYearEnd: "03-31",
   });
 
+  const [errors, setErrors] = useState<Record<string, string>>({});
   const createBusinessMutation = trpc.business.create.useMutation();
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -50,6 +51,13 @@ export default function CreateBusiness() {
       ...prev,
       [name]: value,
     }));
+    // Clear error for this field when user starts typing
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: "",
+      }));
+    }
   };
 
   const handleSelectChange = (name: string, value: string) => {
@@ -59,21 +67,38 @@ export default function CreateBusiness() {
     }));
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const validateForm = (): boolean => {
+    const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) {
-      toast.error("Business name is required");
-      return;
+      newErrors.name = "Business name is required";
     }
 
     if (!formData.industry) {
-      toast.error("Please select an industry");
-      return;
+      newErrors.industry = "Please select an industry";
     }
 
     if (!formData.businessType) {
-      toast.error("Please select a business type");
+      newErrors.businessType = "Please select a business type";
+    }
+
+    if (formData.gstNumber && formData.gstNumber.length > 20) {
+      newErrors.gstNumber = "GST number must be 20 characters or less";
+    }
+
+    if (formData.panNumber && formData.panNumber.length > 10) {
+      newErrors.panNumber = "PAN number must be 10 characters or less";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!validateForm()) {
+      toast.error("Please fix the errors in the form");
       return;
     }
 
@@ -81,7 +106,7 @@ export default function CreateBusiness() {
       const [month, day] = formData.financialYearEnd.split("-");
       const yearEndMonth = parseInt(month);
 
-      const result = await createBusinessMutation.mutateAsync({
+      await createBusinessMutation.mutateAsync({
         name: formData.name,
         industry: formData.industry as any,
         businessType: formData.businessType as any,
@@ -94,8 +119,8 @@ export default function CreateBusiness() {
       toast.success("Business created successfully!");
       setLocation("/dashboard");
     } catch (error) {
-      toast.error("Failed to create business. Please try again.");
       console.error(error);
+      toast.error("Failed to create business. Please try again.");
     }
   };
 
@@ -138,8 +163,14 @@ export default function CreateBusiness() {
                   placeholder="Enter your business name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className="mt-2"
+                  className={`mt-2 ${errors.name ? "border-red-500" : ""}`}
                 />
+                {errors.name && (
+                  <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                    <AlertCircle className="w-4 h-4" />
+                    {errors.name}
+                  </p>
+                )}
               </div>
 
               {/* Industry and Business Type */}
@@ -150,7 +181,7 @@ export default function CreateBusiness() {
                     value={formData.industry}
                     onValueChange={(value) => handleSelectChange("industry", value)}
                   >
-                    <SelectTrigger className="mt-2">
+                    <SelectTrigger className={`mt-2 ${errors.industry ? "border-red-500" : ""}`}>
                       <SelectValue placeholder="Select industry" />
                     </SelectTrigger>
                     <SelectContent>
@@ -161,6 +192,12 @@ export default function CreateBusiness() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.industry && (
+                    <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-4 h-4" />
+                      {errors.industry}
+                    </p>
+                  )}
                 </div>
 
                 <div>
@@ -169,7 +206,7 @@ export default function CreateBusiness() {
                     value={formData.businessType}
                     onValueChange={(value) => handleSelectChange("businessType", value)}
                   >
-                    <SelectTrigger className="mt-2">
+                    <SelectTrigger className={`mt-2 ${errors.businessType ? "border-red-500" : ""}`}>
                       <SelectValue placeholder="Select business type" />
                     </SelectTrigger>
                     <SelectContent>
@@ -180,6 +217,12 @@ export default function CreateBusiness() {
                       ))}
                     </SelectContent>
                   </Select>
+                  {errors.businessType && (
+                    <p className="text-red-500 text-sm mt-1 flex items-center gap-1">
+                      <AlertCircle className="w-4 h-4" />
+                      {errors.businessType}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -193,8 +236,20 @@ export default function CreateBusiness() {
                     placeholder="e.g., 27AABCT1234H1Z0"
                     value={formData.gstNumber}
                     onChange={handleInputChange}
-                    className="mt-2"
+                    maxLength={20}
+                    className={`mt-2 ${errors.gstNumber ? "border-red-500" : ""}`}
                   />
+                  <div className="flex justify-between items-start mt-1">
+                    <div>
+                      {errors.gstNumber && (
+                        <p className="text-red-500 text-sm flex items-center gap-1">
+                          <AlertCircle className="w-4 h-4" />
+                          {errors.gstNumber}
+                        </p>
+                      )}
+                    </div>
+                    <span className="text-xs text-slate-500">{formData.gstNumber.length}/20</span>
+                  </div>
                 </div>
 
                 <div>
@@ -205,8 +260,20 @@ export default function CreateBusiness() {
                     placeholder="e.g., AAAPA1234A"
                     value={formData.panNumber}
                     onChange={handleInputChange}
-                    className="mt-2"
+                    maxLength={10}
+                    className={`mt-2 ${errors.panNumber ? "border-red-500" : ""}`}
                   />
+                  <div className="flex justify-between items-start mt-1">
+                    <div>
+                      {errors.panNumber && (
+                        <p className="text-red-500 text-sm flex items-center gap-1">
+                          <AlertCircle className="w-4 h-4" />
+                          {errors.panNumber}
+                        </p>
+                      )}
+                    </div>
+                    <span className="text-xs text-slate-500">{formData.panNumber.length}/10</span>
+                  </div>
                 </div>
               </div>
 

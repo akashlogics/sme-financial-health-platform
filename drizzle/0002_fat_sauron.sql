@@ -1,0 +1,1 @@
+ALTER TABLE `businesses` MODIFY COLUMN `gstNumber` varchar(20);

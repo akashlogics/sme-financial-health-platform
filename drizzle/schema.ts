@@ -45,7 +45,7 @@ export const businesses = mysqlTable("businesses", {
     "other"
   ]).notNull(),
   registrationNumber: varchar("registrationNumber", { length: 100 }),
-  gstNumber: varchar("gstNumber", { length: 15 }),
+  gstNumber: varchar("gstNumber", { length: 20 }),
   panNumber: varchar("panNumber", { length: 10 }),
   financialYearStart: int("financialYearStart").default(4).notNull(), // Month (1-12)
   businessType: mysqlEnum("businessType", ["sole_proprietor", "partnership", "pvt_ltd", "llp", "other"]).notNull(),
