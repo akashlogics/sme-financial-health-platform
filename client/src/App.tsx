@@ -7,6 +7,7 @@ import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import Dashboard from "./pages/Dashboard";
 import CreateBusiness from "./pages/CreateBusiness";
+import UploadFinancialData from "./pages/UploadFinancialData";
 import { useAuth } from "./_core/hooks/useAuth";
 import { Loader2 } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -17,6 +18,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/dashboard" component={Dashboard} />
       <Route path="/business/new" component={CreateBusiness} />
+      <Route path="/business/:businessId/upload" component={UploadFinancialData} />
       <Route path="/404" component={NotFound} />
       <Route component={NotFound} />
     </Switch>
